@@ -22,23 +22,23 @@ function checksExistsUserAccount(request, response, next) {
 }
 
 app.post("/users", (request, response) => {
-  const { user, username } = request.body;
+  const { name, username } = request.body;
 
-  const userExist = user.find((user) => user.username === username);
+  const userExist = users.find((user) => user.username === username);
 
   if (userExist)
     return response.status(400).json({ error: "Mensagem do erro" });
 
   const newUser = {
     id: uuidv4(),
-    name: user,
-    username: username,
+    name,
+    username,
     todos: [],
   };
 
   users.push(newUser);
 
-  response.status(201).json(newUser);
+  return response.status(201).json(newUser);
 });
 
 app.get("/todos", checksExistsUserAccount, (request, response) => {
@@ -52,7 +52,7 @@ app.post("/todos", checksExistsUserAccount, (request, response) => {
   const { title, deadline } = request.body;
 
   const newToDo = {
-    id: uuidv4,
+    id: uuidv4(),
     title,
     done: false,
     deadline: new Date(deadline),
@@ -61,12 +61,12 @@ app.post("/todos", checksExistsUserAccount, (request, response) => {
 
   user.todos.push(newToDo);
 
-  return response.status(200).json(newToDo);
+  return response.status(201).json(newToDo);
 });
 
 app.put("/todos/:id", checksExistsUserAccount, (request, response) => {
   const { user } = request;
-  const { title, deadline } = request.body;
+  const { title, deadline, done } = request.body;
   const { id } = request.params;
 
   const todo = user.todos.find((todo) => todo.id === id);
@@ -75,6 +75,7 @@ app.put("/todos/:id", checksExistsUserAccount, (request, response) => {
 
   todo.title = title;
   todo.deadline = new Date(deadline);
+  todo.done = done ?? todo.done;
 
   return response.status(200).json(todo);
 });
@@ -101,7 +102,7 @@ app.delete("/todos/:id", checksExistsUserAccount, (request, response) => {
   if (todoIndex === -1)
     return response.status(404).json({ error: "Mensagem de erro" });
 
-  user.todo.splice(todoIndex, 1);
+  user.todos.splice(todoIndex, 1);
 
   return response.status(204).json();
 });
